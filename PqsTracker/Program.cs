@@ -17,18 +17,22 @@ builder.Services.AddDbContext<PqsDbContext>(options =>
 
 builder.Services.AddScoped<IQualificationService, QualificationService>();
 builder.Services.AddScoped<ITraineeService, TraineeService>();
+builder.Services.AddScoped<ISignOffService, SignOffService>();
+builder.Services.AddScoped<IProgressService, ProgressService>();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-// Apply any pending EF Core migrations on startup so the database is
-// always up to date without a separate manual step.
+// Apply any pending EF Core migrations, then seed sample data if the
+// database is empty. Top-level statements like this one support `await`
+// directly — the compiler generates an async Main() behind the scenes.
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<PqsDbContext>();
-    db.Database.Migrate();
+    await db.Database.MigrateAsync();
+    await SeedData.SeedAsync(db);
 }
 
 // Configure the HTTP request pipeline.
