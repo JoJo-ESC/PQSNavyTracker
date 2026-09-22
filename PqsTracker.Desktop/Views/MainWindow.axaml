@@ -1,0 +1,45 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:PqsTracker.Desktop.ViewModels"
+        xmlns:models="using:PqsTracker.Desktop.Models"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        x:Class="PqsTracker.Desktop.Views.MainWindow"
+        x:DataType="vm:MainViewModel"
+        Icon="/Assets/avalonia-logo.ico"
+        Title="PQS Tracker">
+
+    <Design.DataContext>
+        <vm:MainViewModel />
+    </Design.DataContext>
+
+    <!-- Two rows: an Auto-height header, and a DataGrid that fills the rest ("*"). -->
+    <Grid RowDefinitions="Auto,*" Margin="16">
+
+        <TextBlock Grid.Row="0"
+                   Text="Reactor Operator — Line Items"
+                   FontSize="20"
+                   FontWeight="Bold"
+                   Margin="0,0,0,12" />
+
+        <!-- DataGridColumn isn't part of the visual tree, so compiled bindings
+             (the default once x:DataType is set on the Window) can't reach its
+             column definitions. Fall back to classic reflection-based bindings
+             for just this subtree. -->
+        <DataGrid Grid.Row="1"
+                  ItemsSource="{Binding LineItems}"
+                  x:CompileBindings="False"
+                  AutoGenerateColumns="False"
+                  IsReadOnly="True">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Section" Binding="{Binding Section}" Width="140" />
+                <DataGridTextColumn Header="Number" Binding="{Binding Number}" Width="90" />
+                <DataGridTextColumn Header="Description" Binding="{Binding Description}" Width="*" />
+                <DataGridCheckBoxColumn Header="Required" Binding="{Binding IsRequired}" Width="90" />
+            </DataGrid.Columns>
+        </DataGrid>
+
+    </Grid>
+
+</Window>
