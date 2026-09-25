@@ -21,9 +21,7 @@ The project targets net9.0 rather than net8.0 because only the .NET 9 and 10
 SDKs were available in the environment this was built in. Nothing about the
 design depends on the specific version.
 
-## Running it
 
-```
 cd PqsTracker
 dotnet run
 ```
