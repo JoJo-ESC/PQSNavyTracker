@@ -6,7 +6,10 @@ namespace PqsTracker.Controllers;
 
 [ApiController]
 [Route("api/trainees")]
-public class TraineesController(ITraineeService traineeService, IProgressService progressService) : ControllerBase
+public class TraineesController(
+    ITraineeService traineeService,
+    IProgressService progressService,
+    ISignOffService signOffService) : ControllerBase
 {
     [HttpGet]
     public async Task<ActionResult<List<TraineeSummaryDto>>> GetAll()
@@ -40,6 +43,17 @@ public class TraineesController(ITraineeService traineeService, IProgressService
     public async Task<ActionResult<ProgressDto>> GetProgress(int traineeId, int qualificationId)
     {
         var result = await progressService.GetProgressAsync(traineeId, qualificationId);
+        return result.ErrorType switch
+        {
+            ServiceErrorType.NotFound => NotFound(result.Error),
+            _ => Ok(result.Value)
+        };
+    }
+
+    [HttpGet("{traineeId:int}/signoffs/{qualificationId:int}")]
+    public async Task<ActionResult<List<SignOffAuditDto>>> GetSignOffHistory(int traineeId, int qualificationId)
+    {
+        var result = await signOffService.GetHistoryAsync(traineeId, qualificationId);
         return result.ErrorType switch
         {
             ServiceErrorType.NotFound => NotFound(result.Error),

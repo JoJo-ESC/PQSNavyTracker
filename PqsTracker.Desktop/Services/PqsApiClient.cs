@@ -36,6 +36,13 @@ public class PqsApiClient
             ?? throw new InvalidOperationException("Empty response from server.");
     }
 
+    public async Task<List<SignOffAuditDto>> GetSignOffHistoryAsync(int traineeId, int qualificationId)
+    {
+        var response = await _http.GetAsync($"api/trainees/{traineeId}/signoffs/{qualificationId}");
+        await EnsureSuccessOrThrowAsync(response);
+        return await response.Content.ReadFromJsonAsync<List<SignOffAuditDto>>() ?? [];
+    }
+
     public async Task CreateSignOffAsync(int lineItemId, int traineeId, int qualifierId)
     {
         var response = await _http.PostAsJsonAsync("api/signoffs", new
@@ -44,6 +51,12 @@ public class PqsApiClient
             TraineeId = traineeId,
             QualifierId = qualifierId
         });
+        await EnsureSuccessOrThrowAsync(response);
+    }
+
+    public async Task RevokeSignOffAsync(int signOffId, string reason)
+    {
+        var response = await _http.PostAsJsonAsync($"api/signoffs/{signOffId}/revoke", new { Reason = reason });
         await EnsureSuccessOrThrowAsync(response);
     }
 

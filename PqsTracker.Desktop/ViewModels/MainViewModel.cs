@@ -12,6 +12,7 @@ public partial class MainViewModel : ViewModelBase
     public ObservableCollection<TraineeSummaryDto> Trainees { get; } = [];
     public ObservableCollection<QualificationSummaryDto> Qualifications { get; } = [];
     public ObservableCollection<LineItemDto> LineItems { get; } = [];
+    public ObservableCollection<SignOffAuditDto> History { get; } = [];
 
     // Hand-written INotifyPropertyChanged, via ObservableObject.SetProperty
     // (from ViewModelBase), rather than the [ObservableProperty] source
@@ -38,6 +39,25 @@ public partial class MainViewModel : ViewModelBase
         set => SetProperty(ref _statusMessage, value);
     }
 
+    // Separate from StatusMessage on purpose: this persists as a standing
+    // display of current standing, while StatusMessage is transient
+    // success/error feedback from the last action.
+    private string _completionSummary = "";
+    public string CompletionSummary
+    {
+        get => _completionSummary;
+        set => SetProperty(ref _completionSummary, value);
+    }
+
+    // Numeric counterpart to CompletionSummary, for the progress bar —
+    // kept separate since a ProgressBar needs a plain double, not text.
+    private double _completionPercent;
+    public double CompletionPercent
+    {
+        get => _completionPercent;
+        set => SetProperty(ref _completionPercent, value);
+    }
+
     // Who is performing the sign-off — deliberately a separate selection
     // from SelectedTrainee (who's being signed off), so picking the same
     // person for both is possible in the UI and gets rejected by the API's
@@ -58,15 +78,33 @@ public partial class MainViewModel : ViewModelBase
         set => SetProperty(ref _selectedLineItem, value);
     }
 
+    // Bound to the History DataGrid's SelectedItem — which sign-off
+    // "Revoke Selected" acts on.
+    private SignOffAuditDto? _selectedHistoryEntry;
+    public SignOffAuditDto? SelectedHistoryEntry
+    {
+        get => _selectedHistoryEntry;
+        set => SetProperty(ref _selectedHistoryEntry, value);
+    }
+
+    private string _revokeReason = "";
+    public string RevokeReason
+    {
+        get => _revokeReason;
+        set => SetProperty(ref _revokeReason, value);
+    }
+
     // AsyncRelayCommand is a plain class from CommunityToolkit.Mvvm.Input —
     // constructed directly here instead of via the [RelayCommand] generator.
     public IAsyncRelayCommand LoadProgressCommand { get; }
     public IAsyncRelayCommand SignOffCommand { get; }
+    public IAsyncRelayCommand RevokeCommand { get; }
 
     public MainViewModel()
     {
         LoadProgressCommand = new AsyncRelayCommand(LoadProgressAsync);
         SignOffCommand = new AsyncRelayCommand(SignOffAsync);
+        RevokeCommand = new AsyncRelayCommand(RevokeAsync);
     }
 
     // Called once from MainWindow's Loaded event — see the "why not the
@@ -103,12 +141,18 @@ public partial class MainViewModel : ViewModelBase
         try
         {
             var progress = await _api.GetProgressAsync(SelectedTrainee.Id, SelectedQualification.Id);
+            var history = await _api.GetSignOffHistoryAsync(SelectedTrainee.Id, SelectedQualification.Id);
 
             LineItems.Clear();
             foreach (var li in progress.OutstandingLineItems) LineItems.Add(li);
 
-            StatusMessage = $"{progress.QualificationName}: {progress.Completed}/{progress.TotalRequired} " +
-                             $"({progress.PercentComplete}%) complete" + (progress.IsComplete ? " — COMPLETE" : "");
+            History.Clear();
+            foreach (var h in history) History.Add(h);
+
+            CompletionSummary = $"{progress.QualificationName}: {progress.Completed}/{progress.TotalRequired} " +
+                                 $"({progress.PercentComplete}%) complete" + (progress.IsComplete ? " — COMPLETE" : "");
+            CompletionPercent = progress.PercentComplete;
+            StatusMessage = "";
         }
         catch (Exception ex)
         {
@@ -141,6 +185,41 @@ public partial class MainViewModel : ViewModelBase
             // (or any other business rule violation) shows up here as a
             // message, not a crash.
             StatusMessage = $"Sign-off rejected: {ex.Message}";
+        }
+    }
+
+    private async Task RevokeAsync()
+    {
+        if (SelectedHistoryEntry is null)
+        {
+            StatusMessage = "Select a sign-off in the history grid to revoke.";
+            return;
+        }
+
+        if (SelectedHistoryEntry.IsRevoked)
+        {
+            StatusMessage = "That sign-off is already revoked.";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(RevokeReason))
+        {
+            StatusMessage = "Enter a reason before revoking.";
+            return;
+        }
+
+        try
+        {
+            await _api.RevokeSignOffAsync(SelectedHistoryEntry.Id, RevokeReason);
+            StatusMessage = $"Revoked {SelectedHistoryEntry.Number}.";
+            RevokeReason = "";
+            // Same refresh-after-write principle as SignOffAsync — the
+            // history grid picks up the revocation immediately.
+            await LoadProgressAsync();
+        }
+        catch (Exception ex)
+        {
+            StatusMessage = $"Revoke rejected: {ex.Message}";
         }
     }
 }

@@ -30,3 +30,18 @@ public class SignOffDto
     public DateTime? RevokedAt { get; set; }
     public string? RevocationReason { get; set; }
 }
+
+// One row per sign-off event (active or revoked) for a trainee against a
+// qualification's line items — the audit trail view, as opposed to
+// ProgressDto's "what's still outstanding" view.
+public class SignOffAuditDto
+{
+    public int Id { get; set; }
+    public required string Section { get; set; }
+    public required string Number { get; set; }
+    public required string Description { get; set; }
+    public required string QualifierName { get; set; }
+    public DateTime SignedAt { get; set; }
+    public DateTime? RevokedAt { get; set; }
+    public string? RevocationReason { get; set; }
+}

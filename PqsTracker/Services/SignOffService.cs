@@ -75,6 +75,39 @@ public class SignOffService(PqsDbContext db) : ISignOffService
         return ServiceResult<SignOffDto>.Success(ToDto(signOff));
     }
 
+    public async Task<ServiceResult<List<SignOffAuditDto>>> GetHistoryAsync(int traineeId, int qualificationId)
+    {
+        var traineeExists = await db.Trainees.AnyAsync(t => t.Id == traineeId);
+        if (!traineeExists)
+            return ServiceResult<List<SignOffAuditDto>>.NotFound($"Trainee {traineeId} was not found.");
+
+        var qualificationExists = await db.Qualifications.AnyAsync(q => q.Id == qualificationId);
+        if (!qualificationExists)
+            return ServiceResult<List<SignOffAuditDto>>.NotFound($"Qualification {qualificationId} was not found.");
+
+        var history = await db.SignOffs
+            .Include(s => s.LineItem)
+            .Include(s => s.Qualifier)
+            .Where(s => s.TraineeId == traineeId && s.LineItem!.QualificationId == qualificationId)
+            .OrderBy(s => s.LineItem!.Section)
+            .ThenBy(s => s.LineItem!.Number)
+            .ThenBy(s => s.SignedAt)
+            .Select(s => new SignOffAuditDto
+            {
+                Id = s.Id,
+                Section = s.LineItem!.Section.ToString(),
+                Number = s.LineItem.Number,
+                Description = s.LineItem.Description,
+                QualifierName = s.Qualifier!.Name,
+                SignedAt = s.SignedAt,
+                RevokedAt = s.RevokedAt,
+                RevocationReason = s.RevocationReason
+            })
+            .ToListAsync();
+
+        return ServiceResult<List<SignOffAuditDto>>.Success(history);
+    }
+
     private static SignOffDto ToDto(SignOff signOff) => new()
     {
         Id = signOff.Id,

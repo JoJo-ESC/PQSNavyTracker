@@ -36,3 +36,21 @@ public class ProgressDto
     public bool IsComplete { get; set; }
     public List<LineItemDto> OutstandingLineItems { get; set; } = [];
 }
+
+public class SignOffAuditDto
+{
+    public int Id { get; set; }
+    public string Section { get; set; } = "";
+    public string Number { get; set; } = "";
+    public string Description { get; set; } = "";
+    public string QualifierName { get; set; } = "";
+    public DateTime SignedAt { get; set; }
+    public DateTime? RevokedAt { get; set; }
+    public string? RevocationReason { get; set; }
+
+    // Client-only computed properties — not part of the JSON payload, just
+    // convenience for the grid so the view doesn't need a converter for
+    // simple text formatting.
+    public bool IsRevoked => RevokedAt is not null;
+    public string StatusText => IsRevoked ? $"Revoked: {RevocationReason}" : "Active";
+}

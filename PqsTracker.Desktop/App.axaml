@@ -2,15 +2,70 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="PqsTracker.Desktop.App"
              xmlns:local="using:PqsTracker.Desktop"
-             RequestedThemeVariant="Default">
-             <!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
+             RequestedThemeVariant="Dark">
+             <!-- Fixed to Dark rather than "Default" (follow system) — this
+                  is a deliberate look, not a fallback, and it keeps the
+                  screen recording consistent regardless of which machine
+                  records it. -->
 
     <Application.DataTemplates>
         <local:ViewLocator />
     </Application.DataTemplates>
 
+    <Application.Resources>
+        <SolidColorBrush x:Key="AppBackgroundBrush" Color="#14161A" />
+        <SolidColorBrush x:Key="AppPanelBrush" Color="#1D2025" />
+        <SolidColorBrush x:Key="AppBorderBrush" Color="#2E323A" />
+        <SolidColorBrush x:Key="AppAccentBrush" Color="#C9A227" />
+        <SolidColorBrush x:Key="AppAccentForegroundBrush" Color="#14161A" />
+        <SolidColorBrush x:Key="AppSuccessBrush" Color="#4CAF50" />
+        <SolidColorBrush x:Key="AppErrorBrush" Color="#E5734A" />
+    </Application.Resources>
+
     <Application.Styles>
         <FluentTheme />
         <StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml" />
+
+        <!-- Baseline control look, applied everywhere by default. -->
+        <Style Selector="Button">
+            <Setter Property="Background" Value="{StaticResource AppPanelBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource AppBorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="6" />
+            <Setter Property="Padding" Value="14,8" />
+            <Setter Property="FontSize" Value="14" />
+        </Style>
+        <Style Selector="Button:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#262A31" />
+        </Style>
+
+        <!-- The "primary" class marks the one deliberate write action per
+             row of controls (Sign Off Selected) so it visually stands out
+             from read/navigation actions like Load Progress. -->
+        <Style Selector="Button.primary">
+            <Setter Property="Background" Value="{StaticResource AppAccentBrush}" />
+            <Setter Property="Foreground" Value="{StaticResource AppAccentForegroundBrush}" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="BorderThickness" Value="0" />
+        </Style>
+        <Style Selector="Button.primary:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#DDB93A" />
+        </Style>
+
+        <Style Selector="ComboBox">
+            <Setter Property="Background" Value="{StaticResource AppPanelBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource AppBorderBrush}" />
+            <Setter Property="CornerRadius" Value="6" />
+            <Setter Property="Padding" Value="10,6" />
+            <Setter Property="FontSize" Value="14" />
+        </Style>
+
+        <Style Selector="TextBox">
+            <Setter Property="Background" Value="{StaticResource AppPanelBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource AppBorderBrush}" />
+            <Setter Property="CornerRadius" Value="6" />
+            <Setter Property="Padding" Value="10,6" />
+            <Setter Property="FontSize" Value="14" />
+        </Style>
     </Application.Styles>
 </Application>

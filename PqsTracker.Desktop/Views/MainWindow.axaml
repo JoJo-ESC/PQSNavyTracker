@@ -2,84 +2,199 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:PqsTracker.Desktop.ViewModels"
         xmlns:models="using:PqsTracker.Desktop.Models"
+        xmlns:conv="using:PqsTracker.Desktop.Converters"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="900" d:DesignHeight="550"
+        mc:Ignorable="d" d:DesignWidth="1100" d:DesignHeight="750"
         x:Class="PqsTracker.Desktop.Views.MainWindow"
         x:DataType="vm:MainViewModel"
         Icon="/Assets/avalonia-logo.ico"
-        Title="PQS Tracker">
+        Title="PQS Tracker"
+        Width="1100" Height="750"
+        MinWidth="900" MinHeight="600"
+        WindowStartupLocation="CenterScreen"
+        Background="{StaticResource AppBackgroundBrush}">
 
     <Design.DataContext>
         <vm:MainViewModel />
     </Design.DataContext>
 
-    <Grid RowDefinitions="Auto,Auto,Auto,Auto,*" Margin="16">
+    <Grid RowDefinitions="Auto,Auto,Auto,*" Margin="20">
 
-        <TextBlock Grid.Row="0"
-                   Text="PQS Tracker"
-                   FontSize="20"
-                   FontWeight="Bold"
-                   Margin="0,0,0,12" />
-
-        <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="8" Margin="0,0,0,8">
-            <ComboBox Width="200"
-                      PlaceholderText="Select trainee"
-                      ItemsSource="{Binding Trainees}"
-                      SelectedItem="{Binding SelectedTrainee}">
-                <ComboBox.ItemTemplate>
-                    <DataTemplate x:DataType="models:TraineeSummaryDto">
-                        <TextBlock Text="{Binding Name}" />
-                    </DataTemplate>
-                </ComboBox.ItemTemplate>
-            </ComboBox>
-
-            <ComboBox Width="200"
-                      PlaceholderText="Select qualification"
-                      ItemsSource="{Binding Qualifications}"
-                      SelectedItem="{Binding SelectedQualification}">
-                <ComboBox.ItemTemplate>
-                    <DataTemplate x:DataType="models:QualificationSummaryDto">
-                        <TextBlock Text="{Binding Name}" />
-                    </DataTemplate>
-                </ComboBox.ItemTemplate>
-            </ComboBox>
-
-            <Button Content="Load Progress" Command="{Binding LoadProgressCommand}" />
+        <StackPanel Grid.Row="0" Margin="0,0,0,16">
+            <TextBlock Text="PQS Tracker" FontSize="24" FontWeight="Bold" />
+            <TextBlock Text="Reactor Operator qualification tracking"
+                       FontSize="13" Foreground="#9AA0AA" Margin="0,2,0,0" />
         </StackPanel>
 
-        <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="8" Margin="0,0,0,8">
-            <ComboBox Width="200"
-                      PlaceholderText="Sign as (qualifier)"
-                      ItemsSource="{Binding Trainees}"
-                      SelectedItem="{Binding SelectedQualifier}">
-                <ComboBox.ItemTemplate>
-                    <DataTemplate x:DataType="models:TraineeSummaryDto">
-                        <TextBlock Text="{Binding Name}" />
-                    </DataTemplate>
-                </ComboBox.ItemTemplate>
-            </ComboBox>
+        <!-- Selection + actions card -->
+        <Border Grid.Row="1"
+                Background="{StaticResource AppPanelBrush}"
+                BorderBrush="{StaticResource AppBorderBrush}"
+                BorderThickness="1"
+                CornerRadius="8"
+                Padding="16"
+                Margin="0,0,0,16">
+            <StackPanel Spacing="10">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <ComboBox Width="200"
+                              PlaceholderText="Select trainee"
+                              ItemsSource="{Binding Trainees}"
+                              SelectedItem="{Binding SelectedTrainee}">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate x:DataType="models:TraineeSummaryDto">
+                                <TextBlock Text="{Binding Name}" />
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
 
-            <Button Content="Sign Off Selected" Command="{Binding SignOffCommand}" />
-        </StackPanel>
+                    <ComboBox Width="200"
+                              PlaceholderText="Select qualification"
+                              ItemsSource="{Binding Qualifications}"
+                              SelectedItem="{Binding SelectedQualification}">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate x:DataType="models:QualificationSummaryDto">
+                                <TextBlock Text="{Binding Name}" />
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
 
-        <TextBlock Grid.Row="3" Text="{Binding StatusMessage}" Margin="0,0,0,8" TextWrapping="Wrap" />
+                    <Button Content="Load Progress" Command="{Binding LoadProgressCommand}" />
+                </StackPanel>
 
-        <!-- DataGridColumn isn't part of the visual tree, so compiled bindings
-             can't reach its column definitions — classic bindings here instead. -->
-        <DataGrid Grid.Row="4"
-                  ItemsSource="{Binding LineItems}"
-                  SelectedItem="{Binding SelectedLineItem}"
-                  x:CompileBindings="False"
-                  AutoGenerateColumns="False"
-                  IsReadOnly="True">
-            <DataGrid.Columns>
-                <DataGridTextColumn Header="Section" Binding="{Binding Section}" Width="140" />
-                <DataGridTextColumn Header="Number" Binding="{Binding Number}" Width="90" />
-                <DataGridTextColumn Header="Description" Binding="{Binding Description}" Width="*" />
-                <DataGridCheckBoxColumn Header="Required" Binding="{Binding IsRequired}" Width="90" />
-            </DataGrid.Columns>
-        </DataGrid>
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <ComboBox Width="200"
+                              PlaceholderText="Sign as (qualifier)"
+                              ItemsSource="{Binding Trainees}"
+                              SelectedItem="{Binding SelectedQualifier}">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate x:DataType="models:TraineeSummaryDto">
+                                <TextBlock Text="{Binding Name}" />
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+
+                    <Button Content="Sign Off Selected" Classes="primary" Command="{Binding SignOffCommand}" />
+                </StackPanel>
+
+                <TextBlock Text="{Binding StatusMessage}"
+                           Foreground="{StaticResource AppErrorBrush}"
+                           TextWrapping="Wrap"
+                           IsVisible="{Binding StatusMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+            </StackPanel>
+        </Border>
+
+        <!-- Completion card -->
+        <Border Grid.Row="2"
+                Background="{StaticResource AppPanelBrush}"
+                BorderBrush="{StaticResource AppBorderBrush}"
+                BorderThickness="1"
+                CornerRadius="8"
+                Padding="16"
+                Margin="0,0,0,16">
+            <StackPanel Spacing="8">
+                <TextBlock Text="{Binding CompletionSummary}" FontSize="16" FontWeight="Bold" />
+                <ProgressBar Value="{Binding CompletionPercent}"
+                             Maximum="100"
+                             Height="10"
+                             CornerRadius="5"
+                             Foreground="{StaticResource AppAccentBrush}" />
+            </StackPanel>
+        </Border>
+
+        <Grid Grid.Row="3" RowDefinitions="Auto,2*,Auto,Auto,3*">
+
+            <TextBlock Grid.Row="0" Text="Outstanding Line Items" FontWeight="SemiBold" Margin="0,0,0,6" />
+
+            <!-- DataGridColumn isn't part of the visual tree, so compiled
+                 bindings can't reach its column definitions — classic
+                 bindings here instead. -->
+            <Border Grid.Row="1"
+                    Background="{StaticResource AppPanelBrush}"
+                    BorderBrush="{StaticResource AppBorderBrush}"
+                    BorderThickness="1"
+                    CornerRadius="8"
+                    Margin="0,0,0,16"
+                    ClipToBounds="True">
+                <DataGrid ItemsSource="{Binding LineItems}"
+                          SelectedItem="{Binding SelectedLineItem}"
+                          x:CompileBindings="False"
+                          AutoGenerateColumns="False"
+                          IsReadOnly="True"
+                          Background="Transparent"
+                          RowBackground="Transparent"
+                          RowHeight="34"
+                          FontSize="14"
+                          HorizontalGridLinesBrush="{StaticResource AppBorderBrush}"
+                          VerticalGridLinesBrush="Transparent">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Section" Binding="{Binding Section}" Width="140" />
+                        <DataGridTextColumn Header="Number" Binding="{Binding Number}" Width="90" />
+                        <DataGridTextColumn Header="Description" Binding="{Binding Description}" Width="*" />
+                        <DataGridCheckBoxColumn Header="Required" Binding="{Binding IsRequired}" Width="90" />
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Border>
+
+            <TextBlock Grid.Row="2" Text="Sign-Off History (the audit trail)" FontWeight="SemiBold" Margin="0,0,0,6" />
+
+            <StackPanel Grid.Row="3" Orientation="Horizontal" Spacing="8" Margin="0,0,0,8">
+                <TextBox Width="280"
+                         PlaceholderText="Reason for revocation"
+                         Text="{Binding RevokeReason}" />
+                <Button Content="Revoke Selected" Command="{Binding RevokeCommand}" />
+            </StackPanel>
+
+            <!-- Revoked rows render struck through via a converter bound
+                 directly to RevokedAt — null means active, non-null means
+                 revoked. This is the view that proves the append-only
+                 design: revoked entries never disappear, they just look
+                 different. -->
+            <Border Grid.Row="4"
+                    Background="{StaticResource AppPanelBrush}"
+                    BorderBrush="{StaticResource AppBorderBrush}"
+                    BorderThickness="1"
+                    CornerRadius="8"
+                    ClipToBounds="True">
+                <DataGrid ItemsSource="{Binding History}"
+                          SelectedItem="{Binding SelectedHistoryEntry}"
+                          x:CompileBindings="False"
+                          AutoGenerateColumns="False"
+                          IsReadOnly="True"
+                          Background="Transparent"
+                          RowBackground="Transparent"
+                          RowHeight="34"
+                          FontSize="14"
+                          HorizontalGridLinesBrush="{StaticResource AppBorderBrush}"
+                          VerticalGridLinesBrush="Transparent">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Section" Binding="{Binding Section}" Width="120" />
+                        <DataGridTemplateColumn Header="Number" Width="80">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding Number}"
+                                               VerticalAlignment="Center"
+                                               TextDecorations="{Binding RevokedAt, Converter={x:Static conv:RevokedToStrikethroughConverter.Instance}}" />
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTemplateColumn Header="Description" Width="*">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding Description}"
+                                               VerticalAlignment="Center"
+                                               TextDecorations="{Binding RevokedAt, Converter={x:Static conv:RevokedToStrikethroughConverter.Instance}}" />
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTextColumn Header="Qualifier" Binding="{Binding QualifierName}" Width="160" />
+                        <DataGridTextColumn Header="Signed At" Binding="{Binding SignedAt, StringFormat={}{0:g}}" Width="150" />
+                        <DataGridTextColumn Header="Status" Binding="{Binding StatusText}" Width="*" />
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Border>
+
+        </Grid>
 
     </Grid>
 
